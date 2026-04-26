@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Caja Cute 💖</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #fff0f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.app {
+    background: #ffe4ec;
+    padding: 20px;
+    border-radius: 20px;
+    width: 320px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 5px 0;
+    border: none;
+    border-radius: 10px;
+    text-align: right;
+    font-size: 18px;
+}
+
+.result {
+    text-align: center;
+    color: #d63384;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+button {
+    padding: 15px;
+    font-size: 18px;
+    border: none;
+    border-radius: 12px;
+    background: #ff85a2;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #ff5c8a;
+}
+
+.action {
+    width: 100%;
+    margin-top: 10px;
+    background: #ff4d6d;
+}
+
+.secondary {
+    background: #ff8fab;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <input id="total" placeholder="Total">
+    <input id="pago" placeholder="Pago">
+
+    <div class="result" id="resultado"></div>
+
+    <div class="grid">
+        <button onclick="add(7)">7</button>
+        <button onclick="add(8)">8</button>
+        <button onclick="add(9)">9</button>
+
+        <button onclick="add(4)">4</button>
+        <button onclick="add(5)">5</button>
+        <button onclick="add(6)">6</button>
+
+        <button onclick="add(1)">1</button>
+        <button onclick="add(2)">2</button>
+        <button onclick="add(3)">3</button>
+
+        <button onclick="add(0)">0</button>
+        <button onclick="add('.')">.</button>
+        <button onclick="clearAll()">C</button>
+    </div>
+
+    <button class="action" onclick="calcular()">CALCULAR 💸</button>
+
+    <button class="secondary" onclick="verHistorial()">📊 Ver historial</button>
+    <button class="secondary" onclick="limpiarHistorial()">🗑️ Limpiar historial</button>
+
+    <div id="historial" style="margin-top:10px; max-height:150px; overflow:auto; font-size:14px;"></div>
+
+</div>
+
+<script>
+let current = "total";
+
+// seleccionar campo activo
+document.getElementById("total").onclick = () => current = "total";
+document.getElementById("pago").onclick = () => current = "pago";
+
+// agregar números
+function add(value){
+    document.getElementById(current).value += value;
+}
+
+// limpiar
+function clearAll(){
+    document.getElementById("total").value = "";
+    document.getElementById("pago").value = "";
+    document.getElementById("resultado").innerText = "";
+}
+
+// calcular cambio
+function calcular(){
+    let total = parseFloat(document.getElementById("total").value);
+    let pago = parseFloat(document.getElementById("pago").value);
+
+    if(isNaN(total) || isNaN(pago)){
+        document.getElementById("resultado").innerText = "Error";
+        return;
+    }
+
+    let cambio = pago - total;
+
+    document.getElementById("resultado").innerText =
+        "Cambio: $" + cambio.toFixed(2);
+
+    // guardar en historial
+    let historial = JSON.parse(localStorage.getItem("ventas") || "[]");
+
+    historial.push({
+        fecha: new Date().toLocaleString(),
+        total,
+        pago,
+        cambio
+    });
+
+    localStorage.setItem("ventas", JSON.stringify(historial));
+}
+
+// ver historial
+function verHistorial(){
+    let historial = JSON.parse(localStorage.getItem("ventas") || "[]");
+
+    let contenedor = document.getElementById("historial");
+
+    if(historial.length === 0){
+        contenedor.innerHTML = "Sin ventas aún";
+        return;
+    }
+
+    let html = "";
+    let totalDia = 0;
+
+    historial.slice().reverse().forEach(v => {
+        html += `
+            <div style="background:#fff; padding:6px; margin:5px; border-radius:8px;">
+                ${v.fecha}<br>
+                Total: $${v.total} | Pago: $${v.pago} | Cambio: $${v.cambio.toFixed(2)}
+            </div>
+        `;
+        totalDia += v.total;
+    });
+
+    html += `
+        <div style="font-weight:bold; color:#d63384; text-align:center;">
+            Total del día: $${totalDia.toFixed(2)}
+        </div>
+    `;
+
+    contenedor.innerHTML = html;
+}
+
+// limpiar historial
+function limpiarHistorial(){
+    localStorage.removeItem("ventas");
+    document.getElementById("historial").innerHTML = "Historial eliminado";
+}
+</script>
+
+</body>
+</html>
